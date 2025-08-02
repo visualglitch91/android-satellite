@@ -3,11 +3,9 @@ const mqtt = require("mqtt");
 const { createSensor } = require("./createSensor");
 const { createNumber } = require("./createNumber");
 
+const name = process.env.SATELLITE_NAME;
 const mqttHost = process.env.MQTT_HOST;
-const namespace = process.env.SATELLITE_NAME.replaceAll(" ", "_").replaceAll(
-  "-",
-  "_"
-);
+const namespace = name.replaceAll(" ", "_").replaceAll("-", "_");
 
 if (!mqttHost || !namespace) {
   throw new Error("MQTT_HOST and NAMESPACE environment variables are required");
@@ -24,6 +22,8 @@ function execCommand(cmd) {
     });
   });
 }
+
+const device = { name, id: namespace };
 
 let $volume = null;
 let $batteryStatus = null;
@@ -48,9 +48,12 @@ setInterval(updateVolume, UPDATE_INTERVAL);
 setInterval(updateBatteryStatus, UPDATE_INTERVAL);
 
 mqttClient.on("connect", () => {
+  console.log("MQTT connected", mqttHost);
+
   createSensor({
     mqttClient,
-    namespace: `${namespace}/battery`,
+    namespace,
+    device,
     unique_id: `${namespace}_battery_health`,
     name: "Battery Health",
     get_value: async () => (await $batteryStatus).health,
@@ -58,7 +61,8 @@ mqttClient.on("connect", () => {
 
   createSensor({
     mqttClient,
-    namespace: `${namespace}/battery`,
+    namespace,
+    device,
     unique_id: `${namespace}_battery_plugged`,
     name: "Battery Plugged",
     get_value: async () => (await $batteryStatus).plugged,
@@ -66,7 +70,8 @@ mqttClient.on("connect", () => {
 
   createSensor({
     mqttClient,
-    namespace: `${namespace}/battery`,
+    namespace,
+    device,
     unique_id: `${namespace}_battery_status`,
     name: "Battery Status",
     get_value: async () => (await $batteryStatus).status,
@@ -74,7 +79,8 @@ mqttClient.on("connect", () => {
 
   createSensor({
     mqttClient,
-    namespace: `${namespace}/battery`,
+    namespace,
+    device,
     unique_id: `${namespace}_battery_percentage`,
     name: "Battery Percentage",
     get_value: async () => (await $batteryStatus).percentage,
@@ -83,7 +89,8 @@ mqttClient.on("connect", () => {
 
   createNumber({
     mqttClient,
-    namespace: `${namespace}/volume`,
+    namespace,
+    device,
     unique_id: `${namespace}_volume`,
     name: "Volume",
     min: 0,

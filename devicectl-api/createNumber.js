@@ -11,6 +11,7 @@ function createNumber({
   max,
   step,
   unit_of_measurement,
+  device = undefined,
   interval = 5000,
 }) {
   const state_topic = `${namespace}/number/${unique_id}/state`;
@@ -98,7 +99,10 @@ function createNumber({
       max,
       step,
       unit_of_measurement,
-      device_class: "none",
+      device_class: null,
+      device: device
+        ? { name: device.name, identifiers: [device.id] }
+        : undefined,
     },
   });
 

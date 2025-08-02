@@ -13,7 +13,10 @@ function handleAutoDiscovery({ mqttClient, namespace, domain, config }) {
             err
           );
         } else {
-          console.log(`Published auto-discovery payload to ${discoveryTopic}`);
+          console.log(
+            `Published auto-discovery payload to ${discoveryTopic}`,
+            JSON.stringify(config, null, 2)
+          );
         }
       }
     );

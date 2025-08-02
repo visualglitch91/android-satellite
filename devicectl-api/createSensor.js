@@ -9,6 +9,7 @@ function createSensor({
   unit_of_measurement,
   device_class,
   state_class,
+  device = undefined,
   interval = 5000,
 }) {
   const state_topic = `${namespace}/sensor/${unique_id}/state`;
@@ -62,6 +63,9 @@ function createSensor({
       unit_of_measurement,
       device_class,
       state_class,
+      device: device
+        ? { name: device.name, identifiers: [device.id] }
+        : undefined,
     },
   });
 
