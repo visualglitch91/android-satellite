@@ -1,0 +1,3 @@
+[submodule "wyoming-satellite"]
+	path = wyoming-satellite
+	url = https://github.com/rhasspy/wyoming-satellite

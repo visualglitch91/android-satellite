@@ -1,0 +1,7 @@
+#!/data/data/com.termux/files/usr/bin/sh
+
+termux-wake-lock
+sshd &
+/data/data/com.termux/files/usr/bin/node \
+  /data/data/com.termux/files/usr/bin/pm2 \
+  resurrect

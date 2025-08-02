@@ -1,0 +1,47 @@
+#!/data/data/com.termux/files/usr/bin/sh
+
+ROOT=$(realpath "$(dirname "$0")/..")
+export PATH=$PATH:/data/data/com.termux/files/usr/bin
+
+# Update Termux repository to North America mirror
+termux-change-repo
+
+# Upgrade packages and install dependencies
+pkg upgrade -y
+pkg install \
+  helix fish curl wget \
+  git openssh nodejs-lts \
+  which termux-api syncthing \
+  python3 sox pulseaudio -y
+npm install pm2 -g
+
+# Remove existing Termux boot startup script and create symbolic link to custom script
+rm -rf ~/.termux/boot/startup
+ln -s "$ROOT/bin/termux-boot" ~/.termux/boot/startup
+
+# Start syncthing to generate config, then stop it and modify config file to listen on all interfaces
+pm2 start --interpreter=none syncthing
+sleep 5
+pm2 delete syncthing
+sed -i 's/127\.0\.0\.1:8384/0.0.0.0:8384/' ~/.local/state/syncthing/config.xml
+
+# Prompt user to set SSH login password
+passwd
+
+# Change default shell to fish shell
+chsh -s fish
+
+# Prompt for satellite name and save it in the root directory
+# Prompt for MQTT host and satellite name, then save to .config.json
+read -r -p "Enter MQTT host: " mqtt
+read -r -p "Enter satellite name: " name
+echo "{\"MQTT_HOST\": \"$mqtt\", \"SATELLITE_NAME\": \"$name\"}" > "$ROOT/.config.json"
+
+# Initialize git submodules and install dependencies for devicectl-api and wyoming-satellite
+sh -c "cd $ROOT && git submodule update --init --recursive"
+sh -c "cd $ROOT/devicectl-api && npm install"
+sh -c "cd $ROOT/wyoming-satellite && python3 script/setup"
+
+# Restart all pm2-managed processes using ecosystem config and save process list
+pm2 restart "$ROOT/ecosystem.config.js"
+pm2 save --force

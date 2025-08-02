@@ -1,0 +1,19 @@
+#!/data/data/com.termux/files/usr/bin/sh
+
+ROOT=$(realpath "$(dirname "$0")/..")
+
+pactl unload-module module-sles-source
+pactl load-module module-sles-source
+
+cd "$ROOT/wyoming-satellite"
+
+python3 script/run \
+  --name $SATELLITE_NAME \
+  --uri tcp://0.0.0.0:10700 \
+  --mic-command 'rec -r 16000 -c 1 -b 16 -e signed-integer -t raw --no-show-progress -' \
+  --snd-command 'play -r 22050 -c 1 -b 16 -e signed-integer -t raw --no-show-progress -' \
+  --wake-uri 'tcp://10.0.0.7:10400' \
+  --wake-word-name 'alexa' \
+  --awake-wav 'sounds/awake.wav' \
+  --timer-finished-wav 'sounds/timer_finished.wav' \
+  --debug
