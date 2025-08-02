@@ -20,7 +20,7 @@ module.exports = {
       interpreter: "none",
       script: `${__dirname}/bin/start-wyoming-satellite`,
       env: {
-        MQTT_HOST: config.SATELLITE_NAME,
+        SATELLITE_NAME: config.SATELLITE_NAME,
       },
     },
   ],
