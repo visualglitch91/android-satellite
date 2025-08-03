@@ -26,7 +26,7 @@ EOF
 if [ "$USE_PROOT" = true ]; then
   pactl load-module module-native-protocol-tcp auth-anonymous=1
   proot-distro login ubuntu -- bash -c "
-    export PULSE_SERVER=127.0.0.1
+    export PULSE_SERVER=127.0.0.1 &&
     cd /data/data/com.termux/files/home/android-satellite/wyoming-satellite &&
     $CMD
   "

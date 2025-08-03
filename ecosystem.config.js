@@ -17,11 +17,8 @@ module.exports = {
     },
     {
       name: "wyoming-satellite",
-      interpreter: "none",
+      interpreter: "sh",
       script: `${__dirname}/bin/start-wyoming-satellite`,
-      env: {
-        SATELLITE_NAME: config.SATELLITE_NAME,
-      },
     },
   ],
 };

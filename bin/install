@@ -17,8 +17,10 @@ pkg install \
 npm install pm2 -g
 
 # Remove existing Termux boot startup script and create symbolic link to custom script
+mkdir -p ~/.termux/boot/
 rm -rf ~/.termux/boot/startup
-ln -s "$ROOT/bin/termux-boot" ~/.termux/boot/startup
+cp "$ROOT/bin/termux-boot" ~/.termux/boot/startup
+chmod +x ~/.termux/boot/startup
 
 # Start syncthing to generate config, then stop it and modify config file to listen on all interfaces
 pm2 start --interpreter=none syncthing
@@ -58,8 +60,8 @@ if [ "$use_proot_value" = true ]; then
   proot-distro install ubuntu || true
   proot-distro login ubuntu -- bash -c "
     apt update &&
-    apt install -y python3 python3.12-venv &&
-    cd /data/data/com.termux/files/home/android-satellite &&
+    apt install python3 python3-pip python3.12-venv pulseaudio sox -y &&
+    cd /data/data/com.termux/files/home/android-satellite/wyoming-satellite &&
     python3 script/setup
   "
 else
