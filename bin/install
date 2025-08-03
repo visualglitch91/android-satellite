@@ -12,7 +12,8 @@ pkg install \
   helix fish curl wget \
   git openssh nodejs-lts \
   which termux-api syncthing \
-  python3 sox pulseaudio -y
+  python3 sox pulseaudio jq -y
+
 npm install pm2 -g
 
 # Remove existing Termux boot startup script and create symbolic link to custom script
@@ -31,16 +32,41 @@ passwd
 # Change default shell to fish shell
 chsh -s fish
 
-# Prompt for satellite name and save it in the root directory
-# Prompt for MQTT host and satellite name, then save to .config.json
+# Prompt for MQTT host and satellite name
 read -r -p "Enter MQTT host: " mqtt
 read -r -p "Enter satellite name: " name
-echo "{\"MQTT_HOST\": \"$mqtt\", \"SATELLITE_NAME\": \"$name\"}" > "$ROOT/.config.json"
+
+# Ask whether to use proot-distro
+read -r -p "Use proot-distro? (y/n): " use_proot
+use_proot=$(echo "$use_proot" | tr '[:upper:]' '[:lower:]')
+
+if [ "$use_proot" = "y" ] || [ "$use_proot" = "yes" ]; then
+  use_proot_value=true
+else
+  use_proot_value=false
+fi
+
+# Save configuration to .config.json
+echo "{\"MQTT_HOST\": \"$mqtt\", \"SATELLITE_NAME\": \"$name\", \"USE_PROOT\": $use_proot_value}" > "$ROOT/.config.json"
 
 # Initialize git submodules and install dependencies for devicectl-api and wyoming-satellite
 sh -c "cd $ROOT && git submodule update --init --recursive"
 sh -c "cd $ROOT/devicectl-api && npm install"
-sh -c "cd $ROOT/wyoming-satellite && python3 script/setup"
+
+if [ "$use_proot_value" = true ]; then
+  pkg install proot-distro -y
+  proot-distro install ubuntu || true
+  proot-distro login ubuntu -- bash -c "
+    apt update &&
+    apt install -y python3 python3.12-venv &&
+    cd /data/data/com.termux/files/home/android-satellite &&
+    python3 script/setup
+  "
+else
+  sh -c "cd $ROOT/wyoming-satellite && python3 script/setup"
+fi
+
+chmod +x $ROOT/bin/*
 
 # Restart all pm2-managed processes using ecosystem config and save process list
 pm2 restart "$ROOT/ecosystem.config.js"
