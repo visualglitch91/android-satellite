@@ -1,0 +1,5 @@
+{
+  "wake_word": "alexa",
+  "wake_uri": "tcp://10.0.0.7:10400",
+  "snapserver_host": "10.0.0.57"
+}

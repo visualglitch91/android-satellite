@@ -11,7 +11,8 @@ module.exports = {
       script: "sh",
       args:
         '-c "pactl load-module module-native-protocol-tcp auth-anonymous=1 && ' +
-        'proot-distro login debian -- node /root/android-satellite/index.js"',
+        "proot-distro login debian -- " +
+        'PULSE_SERVER=127.0.0.1 node /root/android-satellite/index.js"',
     },
   ],
 };

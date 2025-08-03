@@ -61,6 +61,3 @@ proot-distro login debian -- bash -c "
   wget -O $SNAPCLIENT_FILE $SNAPCLIENT_URL &&
   apt install -y ./$SNAPCLIENT_FILE
 "
-
-pm2 restart "$ROOT/ecosystem.config.js"
-pm2 save --force
