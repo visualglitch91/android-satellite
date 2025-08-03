@@ -1,0 +1,11 @@
+#!/data/data/com.termux/files/usr/bin/sh
+
+pulseaudio -k || true
+pulseaudio --start
+pactl load-module module-native-protocol-tcp auth-anonymous=1
+
+proot-distro login debian -- sh -c "
+  export PULSE_SERVER=127.0.0.1 && \
+  node /root/android-satellite/index.js
+"
+

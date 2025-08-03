@@ -11,6 +11,7 @@ const config = {
 const name = config.satellite_name;
 const mqttHost = config.mqtt_host;
 const namespace = name.replaceAll(" ", "_").replaceAll("-", "_");
+const useTermuxVolume = config.use_termux_volume;
 
 if (!mqttHost || !namespace) {
   throw new Error("satellite_name and mqtt_host config variables are required");
@@ -23,7 +24,7 @@ function execCommand(cmd) {
   return new Promise((resolve, reject) => {
     exec(cmd, (err, stdout) => {
       if (err) return reject(err);
-      resolve(stdout);
+      resolve(stdout.trim());
     });
   });
 }
@@ -33,8 +34,23 @@ const device = { name, id: namespace };
 let $volume = null;
 let $batteryStatus = null;
 
-function updateVolume() {
-  $volume = execCommand("pamixer --get-volume");
+async function updateVolume() {
+  if (useTermuxVolume) {
+    try {
+      const output = await execCommand("termux-volume");
+      const volumes = JSON.parse(output);
+      const musicVolume = volumes.find((v) => v.stream === "music");
+      $volume = Promise.resolve(
+        musicVolume
+          ? Math.round((musicVolume.volume / musicVolume.max_volume) * 100)
+          : 0
+      );
+    } catch {
+      $volume = Promise.resolve(0);
+    }
+  } else {
+    $volume = execCommand("pamixer --get-volume");
+  }
 }
 
 function updateBatteryStatus() {
@@ -99,7 +115,20 @@ mqttClient.on("connect", () => {
     get_value: () => ($volume === null ? Promise.resolve(0) : $volume),
     set_value: async (value) => {
       $volume = Promise.resolve(value);
-      await execCommand(`pamixer --set-volume ${value}`);
+      if (useTermuxVolume) {
+        try {
+          const output = await execCommand("termux-volume");
+          const volumes = JSON.parse(output);
+          const music = volumes.find((v) => v.stream === "music");
+          if (!music) throw new Error("music stream not found");
+          const target = Math.round((value / 100) * music.max_volume);
+          await execCommand(`termux-volume music ${target}`);
+        } catch {
+          return;
+        }
+      } else {
+        await execCommand(`pamixer --set-volume ${value}`);
+      }
     },
   });
 });

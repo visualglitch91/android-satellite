@@ -1,4 +1,5 @@
 {
   "satellite_name": "sample-satellite",
-  "enable_snapclient": true
+  "enable_snapclient": true,
+  "use_termux_volume": false
 }
