@@ -1,8 +1,8 @@
 const { shell } = require("./utils");
 
 const config = {
-  ...require("./.config.json"),
-  ...require("./.config.local.json"),
+  ...require("./config.json"),
+  ...require("./config.local.json"),
 };
 
 (async () => {
