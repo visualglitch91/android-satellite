@@ -1,14 +1,15 @@
-const { exec } = require("child_process");
 const mqtt = require("mqtt");
+const { exec } = require("child_process");
 const { createSensor } = require("./createSensor");
 const { createNumber } = require("./createNumber");
+const config = require(`${__dirname}/../.config.json`);
 
-const name = process.env.SATELLITE_NAME;
-const mqttHost = process.env.MQTT_HOST;
+const name = config.SATELLITE_NAME;
+const mqttHost = config.MQTT_HOST;
 const namespace = name.replaceAll(" ", "_").replaceAll("-", "_");
 
 if (!mqttHost || !namespace) {
-  throw new Error("MQTT_HOST and NAMESPACE environment variables are required");
+  throw new Error("MQTT_HOST and NAMESPACE config variables are required");
 }
 
 const mqttClient = mqtt.connect(mqttHost);

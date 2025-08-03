@@ -1,24 +1,17 @@
-const config = require(`${__dirname}/.config.json`);
-
 module.exports = {
   apps: [
     {
       name: "syncthing",
       interpreter: "none",
-      script: "/data/data/com.termux/files/usr/bin/syncthing",
+      script: "syncthing",
     },
     {
-      name: "devicectl-api",
-      script: `${__dirname}/devicectl-api/index.js`,
-      env: {
-        MQTT_HOST: config.MQTT_HOST,
-        SATELLITE_NAME: config.SATELLITE_NAME,
-      },
-    },
-    {
-      name: "wyoming-satellite",
-      interpreter: "sh",
-      script: `${__dirname}/bin/start-wyoming-satellite`,
+      name: "android-satellite",
+      interpreter: "none",
+      script: "sh",
+      args:
+        '-c "pactl load-module module-native-protocol-tcp auth-anonymous=1 && ' +
+        'proot-distro login debian -- node /root/android-satellite/index.js"',
     },
   ],
 };
