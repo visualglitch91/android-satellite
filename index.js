@@ -4,11 +4,11 @@ const { shell } = require("./utils");
   await shell("bootstrap", "pactl unload-module module-sles-source");
   await shell("bootstrap", "pactl load-module module-sles-source");
 
-  shell("snapclient", "snapclient -h 10.0.0.4 --player pulse");
+  shell("snapclient", "PULSE_SERVER=127.0.0.1 snapclient -h 10.0.0.4 --player pulse");
 
   shell(
     "wyoming-satellite",
-    `python3 script/run \
+    `cd /root/android-satellite/wyoming-satellite && PUlSE_SERVER=127.0.0.1 python3 script/run \
       --name "$SATELLITE_NAME" \
       --uri tcp://0.0.0.0:10700 \
       --mic-command 'rec -r 16000 -c 1 -b 16 -e signed-integer -t raw --no-show-progress -' \
@@ -21,5 +21,5 @@ const { shell } = require("./utils");
     `
   );
 
-  shell("devicectl-api", "node devicectl-api/index.js");
+  shell("devicectl-api", "node /root/android-satellite/devicectl-api/index.js");
 })();

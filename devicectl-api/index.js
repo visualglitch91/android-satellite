@@ -30,12 +30,7 @@ let $volume = null;
 let $batteryStatus = null;
 
 function updateVolume() {
-  $volume = execCommand("termux-volume")
-    .then(JSON.parse)
-    .then((volumes) => {
-      const music = volumes.find((v) => v.stream === "music");
-      return music ? music.volume : 0;
-    });
+  $volume = execCommand("pamixer --get-volume");
 }
 
 function updateBatteryStatus() {
@@ -95,12 +90,12 @@ mqttClient.on("connect", () => {
     unique_id: `${namespace}_volume`,
     name: "Volume",
     min: 0,
-    max: 15,
+    max: 100,
     step: 1,
     get_value: () => ($volume === null ? Promise.resolve(0) : $volume),
     set_value: async (value) => {
       $volume = Promise.resolve(value);
-      await execCommand(`termux-volume music ${value}`);
+      await execCommand(`pamixer --set-volume ${value}`);
     },
   });
 });
