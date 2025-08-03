@@ -12,7 +12,10 @@ const config = {
   if (config.enable_snapclient) {
     shell(
       "snapclient",
-      `snapclient -h ${config.snapserver_host} --player pulse --hostId ${config.satellite_name}`
+      `snapclient \
+        -h ${config.snapserver_host} \
+        --player pulse \
+        --hostID ${config.satellite_name}`
     );
   }
 
