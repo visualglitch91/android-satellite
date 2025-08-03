@@ -12,13 +12,13 @@ const config = {
   if (config.enable_snapclient) {
     shell(
       "snapclient",
-      `PULSE_SERVER=127.0.0.1 snapclient -h ${config.snapserver_host} --player pulse`
+      `snapclient -h ${config.snapserver_host} --player pulse --hostId ${config.satellite_name}`
     );
   }
 
   shell(
     "wyoming-satellite",
-    `cd /root/android-satellite/wyoming-satellite && PULSE_SERVER=127.0.0.1 python3 script/run \
+    `cd /root/android-satellite/wyoming-satellite && python3 script/run \
       --name "${config.satellite_name}" \
       --uri tcp://0.0.0.0:10700 \
       --mic-command 'rec -r 16000 -c 1 -b 16 -e signed-integer -t raw --no-show-progress -' \
