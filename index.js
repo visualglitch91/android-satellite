@@ -12,13 +12,13 @@ const config = {
   if (config.enable_snapclient) {
     shell(
       "snapclient",
-      `snapclient -h ${config.snapserver_host} --player pulse`
+      `PULSE_SERVER=127.0.0.1 snapclient -h ${config.snapserver_host} --player pulse`
     );
   }
 
   shell(
     "wyoming-satellite",
-    `cd /root/android-satellite/wyoming-satellite && python3 script/run \
+    `cd /root/android-satellite/wyoming-satellite && PULSE_SERVER=127.0.0.1 python3 script/run \
       --name "${config.satellite_name}" \
       --uri tcp://0.0.0.0:10700 \
       --mic-command 'rec -r 16000 -c 1 -b 16 -e signed-integer -t raw --no-show-progress -' \
@@ -27,6 +27,7 @@ const config = {
       --wake-word-name '${config.wake_word}' \
       --awake-wav 'sounds/awake.wav' \
       --timer-finished-wav 'sounds/timer_finished.wav' \
+      --no-zeroconf \
       --debug
     `
   );
