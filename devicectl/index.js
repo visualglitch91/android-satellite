@@ -36,7 +36,7 @@ let currentVolume = null;
 let batteryStatus$ = null;
 
 async function getVolume() {
-  if (volumeControl === "termux") {
+  if (volumeType === "termux") {
     try {
       const output = await execCommand("termux-volume");
       const volumes = JSON.parse(output);
@@ -45,7 +45,7 @@ async function getVolume() {
     } catch (err) {
       console.error(err);
     }
-  } else if (volumeControl === "custom") {
+  } else if (volumeType === "custom") {
     return require("../volume.local.js").getVolume();
   }
 
@@ -53,13 +53,13 @@ async function getVolume() {
 }
 
 async function updateVolume() {
-  if (volumeControl === "termux") {
+  if (volumeType === "termux") {
     try {
       await execCommand(`termux-volume music ${currentVolume}`);
     } catch (err) {
       console.error(err);
     }
-  } else if (volumeControl === "custom") {
+  } else if (volumeType === "custom") {
     return require("../volume.local.js").setVolume(currentVolume);
   }
 }
