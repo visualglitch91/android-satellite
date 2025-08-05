@@ -6,14 +6,16 @@ module.exports = {
       script: "syncthing",
     },
     {
-      name: "android-satellite",
+      name: "wyoming-satellite",
+      cwd: __dirname,
       interpreter: "none",
       script: "sh",
-      args:
-        '-c "pactl unload-module module-native-protocol-tcp && ' +
-        "pactl load-module module-native-protocol-tcp auth-anonymous=1 && " +
-        "proot-distro login debian -- " +
-        'PULSE_SERVER=127.0.0.1 node /root/android-satellite/index.js"',
+      args: "./bin/start-wyoming-satellite",
+    },
+    {
+      name: "devicectl",
+      cwd: __dirname,
+      script: "./devicectl/index.js",
     },
   ],
 };

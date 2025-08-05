@@ -11,14 +11,15 @@ const config = {
 const name = config.satellite_name;
 const mqttHost = config.mqtt_host;
 const namespace = name.replaceAll(" ", "_").replaceAll("-", "_");
-const volumeControl = config.volume_type || "pamixer";
+const volumeType = config.volume_type || "termux";
 
 if (!mqttHost || !namespace) {
   throw new Error("satellite_name and mqtt_host config variables are required");
 }
 
 const mqttClient = mqtt.connect(mqttHost);
-const UPDATE_INTERVAL = 5000;
+const BATTERY_UPDATE_INTERVAL = 5000;
+const VOLUME_UPDATE_INTERVAL = 1000;
 
 function execCommand(cmd) {
   return new Promise((resolve, reject) => {
@@ -31,39 +32,50 @@ function execCommand(cmd) {
 
 const device = { name, id: namespace };
 
-let $volume = null;
-let $batteryStatus = null;
+let currentVolume = null;
+let batteryStatus$ = null;
 
-async function updateVolume() {
+async function getVolume() {
   if (volumeControl === "termux") {
     try {
       const output = await execCommand("termux-volume");
       const volumes = JSON.parse(output);
       const musicVolume = volumes.find((v) => v.stream === "music");
-      $volume = Promise.resolve(
-        musicVolume
-          ? Math.round((musicVolume.volume / musicVolume.max_volume) * 100)
-          : 0
-      );
-    } catch {
-      $volume = Promise.resolve(0);
+      return musicVolume.volume;
+    } catch (err) {
+      console.error(err);
     }
-  } else if (volumeControl === "pamixer") {
-    $volume = execCommand("pamixer --get-volume");
   } else if (volumeControl === "custom") {
-    $volume = require("../volume.local.js").getVolume();
+    return require("../volume.local.js").getVolume();
+  }
+
+  return 0;
+}
+
+async function updateVolume() {
+  if (volumeControl === "termux") {
+    try {
+      await execCommand(`termux-volume music ${currentVolume}`);
+    } catch (err) {
+      console.error(err);
+    }
+  } else if (volumeControl === "custom") {
+    return require("../volume.local.js").setVolume(currentVolume);
   }
 }
 
 function updateBatteryStatus() {
-  $batteryStatus = execCommand("termux-battery-status").then(JSON.parse);
+  batteryStatus$ = execCommand("termux-battery-status").then(JSON.parse);
 }
 
-updateVolume();
+setInterval(updateVolume, VOLUME_UPDATE_INTERVAL);
+setInterval(updateBatteryStatus, BATTERY_UPDATE_INTERVAL);
+
 updateBatteryStatus();
 
-setInterval(updateVolume, UPDATE_INTERVAL);
-setInterval(updateBatteryStatus, UPDATE_INTERVAL);
+getVolume().then((volume) => {
+  currentVolume = volume;
+});
 
 mqttClient.on("connect", () => {
   console.log("MQTT connected", mqttHost);
@@ -74,7 +86,7 @@ mqttClient.on("connect", () => {
     device,
     unique_id: `${namespace}_battery_health`,
     name: "Battery Health",
-    get_value: async () => (await $batteryStatus).health,
+    get_value: async () => (await batteryStatus$).health,
   });
 
   createSensor({
@@ -83,7 +95,7 @@ mqttClient.on("connect", () => {
     device,
     unique_id: `${namespace}_battery_plugged`,
     name: "Battery Plugged",
-    get_value: async () => (await $batteryStatus).plugged,
+    get_value: async () => (await batteryStatus$).plugged,
   });
 
   createSensor({
@@ -92,7 +104,7 @@ mqttClient.on("connect", () => {
     device,
     unique_id: `${namespace}_battery_status`,
     name: "Battery Status",
-    get_value: async () => (await $batteryStatus).status,
+    get_value: async () => (await batteryStatus$).status,
   });
 
   createSensor({
@@ -101,7 +113,7 @@ mqttClient.on("connect", () => {
     device,
     unique_id: `${namespace}_battery_percentage`,
     name: "Battery Percentage",
-    get_value: async () => (await $batteryStatus).percentage,
+    get_value: async () => (await batteryStatus$).percentage,
     unit_of_measurement: "%",
   });
 
@@ -112,27 +124,13 @@ mqttClient.on("connect", () => {
     unique_id: `${namespace}_volume`,
     name: "Volume",
     min: 0,
-    max: 100,
+    max: volumeType === "termux" ? 15 : 100,
     step: 1,
-    get_value: () => ($volume === null ? Promise.resolve(0) : $volume),
+    get_value: () => {
+      return currentVolume || 0;
+    },
     set_value: async (value) => {
-      $volume = Promise.resolve(value);
-      if (volumeControl === "termux") {
-        try {
-          const output = await execCommand("termux-volume");
-          const volumes = JSON.parse(output);
-          const music = volumes.find((v) => v.stream === "music");
-          if (!music) throw new Error("music stream not found");
-          const target = Math.round((value / 100) * music.max_volume);
-          await execCommand(`termux-volume music ${target}`);
-        } catch {
-          return;
-        }
-      } else if (volumeControl === "pamixer") {
-        await execCommand(`pamixer --set-volume ${value}`);
-      } else if (volumeControl === "custom") {
-        require("../volume.local.js").setVolume(value);
-      }
+      currentVolume = value;
     },
   });
 });

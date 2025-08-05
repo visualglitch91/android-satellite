@@ -3,16 +3,6 @@
 ROOT=$(realpath "$(dirname "$0")/..")
 export PATH=$PATH:/data/data/com.termux/files/usr/bin
 
-SNAPCAST_VERSION="0.31.0"
-SNAPCLIENT_FILE="snapclient.deb"
-
-ARCH=$(dpkg --print-architecture)
-if [ "$ARCH" = "aarch64" ]; then
-  SNAPCLIENT_URL="https://github.com/badaix/snapcast/releases/download/v${SNAPCAST_VERSION}/snapclient_${SNAPCAST_VERSION}-1_arm64_bookworm_with-pulse.deb"
-else
-  SNAPCLIENT_URL="https://github.com/badaix/snapcast/releases/download/v${SNAPCAST_VERSION}/snapclient_${SNAPCAST_VERSION}-1_armhf_bookworm_with-pulse.deb"
-fi
-
 termux-change-repo
 
 pkg upgrade -y
@@ -39,27 +29,26 @@ chsh -s fish
 
 sh -c "cd $ROOT && git submodule update --init --recursive"
 
-pkg install proot-distro -y
-proot-distro install debian || true
-proot-distro login debian -- bash -c "
-  rm /root/android-satellite/android-satellite || true &&
-  ln -s /data/data/com.termux/files/home/android-satellite /root/android-satellite &&
-  apt update &&
-  apt install curl wget -y &&
-  curl -fsSL https://deb.nodesource.com/setup_20.x | bash - &&
-  apt install nodejs python3 python3-pip python3-venv pamixer pulseaudio sox -y &&
-  cd /root/android-satellite/wyoming-satellite &&
-  cd /root/android-satellite/wyoming-satellite &&
-  cd /root/android-satellite/wyoming-satellite &&
-  cd /root/android-satellite/wyoming-satellite &&
-  python3 script/setup &&
-  cd /root/android-satellite/devicectl-api &&
-  cd /root/android-satellite/devicectl-api &&
-  cd /root/android-satellite/devicectl-api &&
-  cd /root/android-satellite/devicectl-api &&
-  npm install &&
-  cd /root &&
-  rm $SNAPCLIENT_FILE || true &&
-  wget -O $SNAPCLIENT_FILE $SNAPCLIENT_URL &&
-  apt install -y ./$SNAPCLIENT_FILE
-"
+printf "Use proot-distro (y/n)? "
+read USE_PROOT
+
+if [ "$USE_PROOT" = "y" ] || [ "$USE_PROOT" = "Y" ]; then
+  pkg install proot-distro -y
+  proot-distro install debian || true
+  proot-distro login debian -- bash -c "
+    rm /root/android-satellite/android-satellite || true &&
+    ln -s /data/data/com.termux/files/home/android-satellite /root/android-satellite &&
+    apt update &&
+    apt install curl wget -y &&
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - &&
+    apt install nodejs python3 python3-pip python3-venv pulseaudio sox -y &&
+    cd /root/android-satellite/wyoming-satellite &&
+    python3 script/setup &&
+    cd /root/android-satellite/devicectl &&
+    npm install
+  "
+else
+  echo "ok"
+  sh -c "cd $ROOT/wyoming-satellite && python3 script/setup"
+  sh -c "cd $ROOT/devicectl && npm install"
+fi
