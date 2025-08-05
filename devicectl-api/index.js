@@ -51,7 +51,7 @@ async function updateVolume() {
   } else if (volumeControl === "pamixer") {
     $volume = execCommand("pamixer --get-volume");
   } else if (volumeControl === "custom") {
-    require("../volume.local.js").getVolume();
+    $volume = require("../volume.local.js").getVolume();
   }
 }
 
