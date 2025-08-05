@@ -29,7 +29,7 @@ pulseaudio --start
 if [ "$USE_PROOT" = true ]; then
   pactl unload-module module-native-protocol-tcp || true
   pactl load-module module-native-protocol-tcp auth-anonymous=1
-  proot-distro login ubuntu -- bash -c "
+  proot-distro login debian -- bash -c "
     export PULSE_SERVER=127.0.0.1 &&
     cd /data/data/com.termux/files/home/android-satellite/wyoming-satellite &&
     $CMD
