@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/sh
 
 ROOT=$(realpath "$(dirname "$0")/..")
-CONFIG="$ROOT/.config.json"
+CONFIG="$ROOT/config.local.json"
 
 USE_PROOT=$(jq -r '.use_proot_workaround' "$CONFIG")
 SATELLITE_NAME=$(jq -r '.satellite_name' "$CONFIG")
