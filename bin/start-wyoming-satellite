@@ -26,11 +26,12 @@ EOF
 
 pulseaudio -k || true
 pulseaudio --start
+sleep 0.2
+pactl set-sink-volume @DEFAULT_SINK@ "$SATELLITE_VOLUME%"
 
 if [ "$USE_PROOT" = true ]; then
   pactl unload-module module-native-protocol-tcp || true
   pactl load-module module-native-protocol-tcp auth-anonymous=1
-  pactl set-sink-volume @DEFAULT_SINK@ "$SATELLITE_VOLUME%"
   proot-distro login debian -- bash -c "
     export PULSE_SERVER=127.0.0.1 &&
     cd /data/data/com.termux/files/home/android-satellite/wyoming-satellite &&
