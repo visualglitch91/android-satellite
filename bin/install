@@ -24,7 +24,6 @@ sleep 5
 pm2 delete syncthing
 sed -i 's/127\.0\.0\.1:8384/0.0.0.0:8384/' ~/.local/state/syncthing/config.xml
 
-passwd
 chsh -s fish
 
 sh -c "cd $ROOT && git submodule update --init --recursive"
@@ -48,7 +47,6 @@ if [ "$USE_PROOT" = "y" ] || [ "$USE_PROOT" = "Y" ]; then
     npm install
   "
 else
-  echo "ok"
   sh -c "cd $ROOT/wyoming-satellite && python3 script/setup"
   sh -c "cd $ROOT/devicectl && npm install"
 fi
