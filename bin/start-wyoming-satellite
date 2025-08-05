@@ -5,6 +5,7 @@ CONFIG="$ROOT/config.local.json"
 
 USE_PROOT=$(jq -r '.use_proot_workaround' "$CONFIG")
 SATELLITE_NAME=$(jq -r '.satellite_name' "$CONFIG")
+SATELLITE_VOLUME=$(jq -r '.satellite_volume // 100' "$CONFIG")
 
 CMD=$(cat <<EOF
 pactl unload-module module-sles-source || true &&
@@ -29,6 +30,7 @@ pulseaudio --start
 if [ "$USE_PROOT" = true ]; then
   pactl unload-module module-native-protocol-tcp || true
   pactl load-module module-native-protocol-tcp auth-anonymous=1
+  pactl set-sink-volume @DEFAULT_SINK@ "$SATELLITE_VOLUME%"
   proot-distro login debian -- bash -c "
     export PULSE_SERVER=127.0.0.1 &&
     cd /data/data/com.termux/files/home/android-satellite/wyoming-satellite &&
