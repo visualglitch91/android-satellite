@@ -29,7 +29,7 @@ pulseaudio -k || true
 pulseaudio --start
 sleep 0.2
 pactl set-sink-volume @DEFAULT_SINK@ "$SATELLITE_OUTPUT_VOLUME%"
-pactl set-source-volume @DEFAULT_SINK@ "$SATELLITE_INPUT_VOLUME%"
+pactl set-source-volume @DEFAULT_SOURCE@ "$SATELLITE_INPUT_VOLUME%"
 
 if [ "$USE_PROOT" = true ]; then
   pactl unload-module module-native-protocol-tcp || true
