@@ -5,7 +5,8 @@ CONFIG="$ROOT/config.local.json"
 
 USE_PROOT=$(jq -r '.use_proot_workaround' "$CONFIG")
 SATELLITE_NAME=$(jq -r '.satellite_name' "$CONFIG")
-SATELLITE_VOLUME=$(jq -r '.satellite_volume // 100' "$CONFIG")
+SATELLITE_OUTPUT_VOLUME=$(jq -r '.satellite_output_volume // 100' "$CONFIG")
+SATELLITE_INPUT_VOLUME=$(jq -r '.satellite_input_volume // 80' "$CONFIG")
 
 CMD=$(cat <<EOF
 pactl unload-module module-sles-source || true &&
@@ -27,7 +28,8 @@ EOF
 pulseaudio -k || true
 pulseaudio --start
 sleep 0.2
-pactl set-sink-volume @DEFAULT_SINK@ "$SATELLITE_VOLUME%"
+pactl set-sink-volume @DEFAULT_SINK@ "$SATELLITE_OUTPUT_VOLUME%"
+pactl set-sink-volume @DEFAULT_SINK@ "$SATELLITE_INPUT_VOLUME%"
 
 if [ "$USE_PROOT" = true ]; then
   pactl unload-module module-native-protocol-tcp || true

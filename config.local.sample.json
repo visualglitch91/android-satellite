@@ -1,6 +1,7 @@
 {
   "satellite_name": "sample-satellite",
-  "satellite_volume": 100,
+  "satellite_output_volume": 100,
+  "satellite_input_volume": 60,
   "volume_type": "termux",
   "use_proot_workaround": false
 }
