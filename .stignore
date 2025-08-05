@@ -3,3 +3,4 @@ config.local.json
 .DS_Store
 node_modules
 wyoming-satellite
+volume.local.js

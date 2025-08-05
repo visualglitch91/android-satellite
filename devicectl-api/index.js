@@ -11,7 +11,7 @@ const config = {
 const name = config.satellite_name;
 const mqttHost = config.mqtt_host;
 const namespace = name.replaceAll(" ", "_").replaceAll("-", "_");
-const useTermuxVolume = config.use_termux_volume;
+const volumeControl = config.volume_type || "pamixer";
 
 if (!mqttHost || !namespace) {
   throw new Error("satellite_name and mqtt_host config variables are required");
@@ -35,7 +35,7 @@ let $volume = null;
 let $batteryStatus = null;
 
 async function updateVolume() {
-  if (useTermuxVolume) {
+  if (volumeControl === "termux") {
     try {
       const output = await execCommand("termux-volume");
       const volumes = JSON.parse(output);
@@ -48,8 +48,10 @@ async function updateVolume() {
     } catch {
       $volume = Promise.resolve(0);
     }
-  } else {
+  } else if (volumeControl === "pamixer") {
     $volume = execCommand("pamixer --get-volume");
+  } else if (volumeControl === "custom") {
+    require("../volume.local.js").getVolume();
   }
 }
 
@@ -115,7 +117,7 @@ mqttClient.on("connect", () => {
     get_value: () => ($volume === null ? Promise.resolve(0) : $volume),
     set_value: async (value) => {
       $volume = Promise.resolve(value);
-      if (useTermuxVolume) {
+      if (volumeControl === "termux") {
         try {
           const output = await execCommand("termux-volume");
           const volumes = JSON.parse(output);
@@ -126,8 +128,10 @@ mqttClient.on("connect", () => {
         } catch {
           return;
         }
-      } else {
+      } else if (volumeControl === "pamixer") {
         await execCommand(`pamixer --set-volume ${value}`);
+      } else if (volumeControl === "custom") {
+        require("../volume.local.js").setVolume(value);
       }
     },
   });

@@ -1,3 +1,4 @@
 .stfolder
 config.local.json
 node_modules
+volume.local.js
