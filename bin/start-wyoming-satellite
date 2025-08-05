@@ -23,7 +23,7 @@ python3 script/run \
 EOF
 )
 
-pulseaudio -k && || true
+pulseaudio -k || true
 pulseaudio --start
 
 if [ "$USE_PROOT" = true ]; then
