@@ -9,9 +9,6 @@ SATELLITE_OUTPUT_VOLUME=$(jq -r '.satellite_output_volume // 100' "$CONFIG")
 SATELLITE_INPUT_VOLUME=$(jq -r '.satellite_input_volume // 80' "$CONFIG")
 
 CMD=$(cat <<EOF
-pactl unload-module module-sles-source || true &&
-pactl load-module module-sles-source &&
-
 python3 script/run \
   --name "$SATELLITE_NAME" \
   --uri tcp://0.0.0.0:10700 \
@@ -27,7 +24,10 @@ EOF
 
 pulseaudio -k || true
 pulseaudio --start
-sleep 0.2
+
+pactl unload-module module-sles-source || true
+pactl load-module module-sles-source
+
 pactl set-sink-volume @DEFAULT_SINK@ "$SATELLITE_OUTPUT_VOLUME%"
 pactl set-source-volume @DEFAULT_SOURCE@ "$SATELLITE_INPUT_VOLUME%"
 
